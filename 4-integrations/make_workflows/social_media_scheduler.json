@@ -1,0 +1,74 @@
+{
+  "name": "Social Media Scheduler Workflow",
+  "description": "Automatically schedule posts across multiple social media platforms",
+  "version": "1.0",
+  "modules": [
+    {
+      "id": "1",
+      "module": "google-sheets:watchRows",
+      "name": "Watch for new posts in Google Sheet",
+      "parameters": {
+        "spreadsheetId": "YOUR_SHEET_ID",
+        "sheetId": "0",
+        "limit": "10",
+        "orderBy": "A"
+      }
+    },
+    {
+      "id": "2",
+      "module": "text:parseJson",
+      "name": "Parse post data",
+      "parameters": {
+        "json": "{{1.values}}"
+      }
+    },
+    {
+      "id": "3",
+      "module": "instagram:createPost",
+      "name": "Post to Instagram",
+      "parameters": {
+        "accountId": "YOUR_INSTAGRAM_ID",
+        "caption": "{{2.caption}}",
+        "imageUrl": "{{2.image_url}}",
+        "hashtags": "{{2.hashtags}}"
+      }
+    },
+    {
+      "id": "4",
+      "module": "twitter:createTweet",
+      "name": "Post to Twitter",
+      "parameters": {
+        "text": "{{2.caption}}\n{{2.hashtags}}",
+        "mediaUrls": ["{{2.image_url}}"]
+      }
+    },
+    {
+      "id": "5",
+      "module": "facebook:createPost",
+      "name": "Post to Facebook",
+      "parameters": {
+        "pageId": "YOUR_PAGE_ID",
+        "message": "{{2.caption}}",
+        "link": "{{2.link}}"
+      }
+    },
+    {
+      "id": "6",
+      "module": "slack:sendMessage",
+      "name": "Send Slack notification",
+      "parameters": {
+        "webhookUrl": "YOUR_SLACK_WEBHOOK",
+        "text": "Post scheduled across all platforms!"
+      }
+    }
+  ],
+  "routes": [
+    {"from": "1", "to": "2"},
+    {"from": "2", "to": "3"},
+    {"from": "2", "to": "4"},
+    {"from": "2", "to": "5"},
+    {"from": "3", "to": "6"},
+    {"from": "4", "to": "6"},
+    {"from": "5", "to": "6"}
+  ]
+}
